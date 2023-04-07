@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    username: dev
+    password: 123
+    url: jdbc:h2:file:./data/cloud-disk
+  h2:
+    console:
+      enabled: true
