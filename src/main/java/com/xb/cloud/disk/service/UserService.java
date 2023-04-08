@@ -21,7 +21,8 @@ public interface UserService extends IService<User> {
      * 用户登录（密码用明文）
      *
      * @param user user
+     * @return user info
      * @throws BusinessException BusinessException
      */
-    void signIn(User user) throws BusinessException;
+    User signIn(User user) throws BusinessException;
 }

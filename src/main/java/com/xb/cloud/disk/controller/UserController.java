@@ -1,6 +1,6 @@
 package com.xb.cloud.disk.controller;
 
-import com.fasterxml.jackson.annotation.JsonView;
+import com.xb.cloud.disk.constant.SysConstants;
 import com.xb.cloud.disk.entity.User;
 import com.xb.cloud.disk.service.UserService;
 import com.xb.cloud.disk.vo.ApiResponse;
@@ -34,13 +34,13 @@ public class UserController {
     }
 
     @PostMapping("signIn")
-    public ApiResponse<Void> signIn(@RequestBody UserSignInVO vo, HttpServletRequest request){
+    public ApiResponse<Void> signIn(@RequestBody UserSignInVO vo, HttpServletRequest request) {
         User user = new User();
         user.setUsername(vo.getUsername());
         user.setPassword(vo.getPassword());
-        userService.signIn(user);
+        User userInfo = userService.signIn(user);
         // 登录成功，保存用户信息在会话里
-        request.getSession().setAttribute("user", user);
+        request.getSession().setAttribute(SysConstants.USER_CONTEXT_ATTR_NAME, userInfo);
         return ApiResponse.ok(null);
     }
 }

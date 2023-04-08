@@ -28,12 +28,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public void signIn(User user) throws BusinessException {
+    public User signIn(User user) throws BusinessException {
         User userByUsernameAndPassword = baseMapper.selectOne(new LambdaQueryWrapper<User>()
                 .eq(User::getUsername, user.getUsername())
                 .eq(User::getPassword, PasswordEncoder.encode(user.getPassword())));
         if (userByUsernameAndPassword == null) {
             throw new BusinessException("incorrect username or password.");
         }
+        return userByUsernameAndPassword;
     }
 }
