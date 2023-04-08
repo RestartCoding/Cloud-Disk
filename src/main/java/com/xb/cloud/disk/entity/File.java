@@ -2,6 +2,7 @@ package com.xb.cloud.disk.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.xb.cloud.disk.enums.FileType;
 import lombok.Data;
 
 import java.util.Date;
@@ -25,7 +26,7 @@ public class File {
 
     private String url;
 
-    private Boolean folder;
+    private FileType type;
 
     private Integer pid;
 

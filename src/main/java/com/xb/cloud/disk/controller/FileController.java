@@ -5,10 +5,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xb.cloud.disk.entity.File;
 import com.xb.cloud.disk.service.FileService;
 import com.xb.cloud.disk.vo.ApiResponse;
+import com.xb.cloud.disk.vo.file.CreateFolderVO;
 import com.xb.cloud.disk.vo.file.UploadFileVO;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -19,14 +19,13 @@ import java.io.InputStream;
 /**
  * @author jack
  */
-@Controller
+@RestController
 @RequestMapping("/file")
 public class FileController {
 
     @Resource
     private FileService fileService;
 
-    @ResponseBody
     @PostMapping("/upload")
     public ApiResponse<Void> upload(UploadFileVO uploadFileVO) throws IOException {
         fileService.uploadFile(uploadFileVO);
@@ -38,15 +37,20 @@ public class FileController {
         // 先写头
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment");
 
-        try (InputStream in = fileService.downlaod(fileId)) {
+        try (InputStream in = fileService.download(fileId)) {
             IOUtils.copy(in, response.getOutputStream());
         }
     }
 
-    @ResponseBody
     @GetMapping("/pageList")
-    public ApiResponse<IPage<File>> pageList(int pageNum, int pageSize) {
-        IPage<File> pageList = fileService.pageList(new Page<>(pageNum, pageSize));
+    public ApiResponse<IPage<File>> pageList(int pageNum, int pageSize, int pid) {
+        IPage<File> pageList = fileService.pageList(new Page<>(pageNum, pageSize), pid);
         return ApiResponse.ok(pageList);
+    }
+
+    @PostMapping("/folder")
+    public ApiResponse<Void> createFolder(@RequestBody CreateFolderVO vo) {
+        fileService.createFolder(vo);
+        return ApiResponse.ok(null);
     }
 }

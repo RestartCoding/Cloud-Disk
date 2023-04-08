@@ -8,3 +8,5 @@ spring:
       enabled: true
 storage:
   dir: './file'
+mybatis-plus:
+  type-enums-package: com.xb.cloud.disk.enums

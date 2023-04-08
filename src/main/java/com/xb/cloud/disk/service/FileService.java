@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.xb.cloud.disk.entity.File;
 import com.xb.cloud.disk.exception.BusinessException;
+import com.xb.cloud.disk.vo.file.CreateFolderVO;
 import com.xb.cloud.disk.vo.file.UploadFileVO;
 
 import java.io.InputStream;
@@ -26,11 +27,18 @@ public interface FileService extends IService<File> {
      * @return in
      * @throws BusinessException BusinessException
      */
-    InputStream downlaod(int fileId) throws BusinessException;
+    InputStream download(int fileId) throws BusinessException;
 
     /**
      * @param page page
      * @return file page list
      */
-    IPage<File> pageList(IPage<File> page);
+    IPage<File> pageList(IPage<File> page, int pid);
+
+    /**
+     * 创建文件夹
+     *
+     * @param createFolderVO vo
+     */
+    void createFolder(CreateFolderVO createFolderVO);
 }
