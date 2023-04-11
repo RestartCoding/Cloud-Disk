@@ -33,7 +33,13 @@
         Create Folder
     </button>
 </div>
+    <!-- 面包屑 -->
+    <span class="layui-breadcrumb">
+      <a href="#" data-id="-1" onclick="jumpBreadcrumb(this)">根目录</a>
+    </span>
+<div>
 
+</div>
 <!-- 文件表格 -->
 <div>
     <table id="fileList" lay-filter="fileList"></table>
@@ -119,7 +125,7 @@
 
     function addLink(data) {
         if (data.type === 'FOLDER') {
-            return '<a href="#" onclick="reload(' + data.id + ')">' + data.filename + '</a>';
+            return '<a href="#" onclick="walKInFolder(' + JSON.stringify(data).replace(/"/g, '&quot;') + ')">' + data.filename + '</a>';
         } else {
             return '<a href="/file/download?fileId=' + data.id +'">' + data.filename + '</a>';
         }
@@ -156,6 +162,14 @@
         ]]
     });
 
+    function walKInFolder(data){
+        var html = '<span lay-separator="">/</span><a href="#" data-id="'+ data.id +'" onclick="jumpBreadcrumb(this)">' + data.filename + '</a>';
+        var e = document.querySelector(".layui-breadcrumb");
+        e.innerHTML = e.innerHTML + html;
+        // 重载数据
+        reload(data.id);
+    }
+
     function reload(pid) {
         table.reload('fileList', {
             where: {
@@ -181,6 +195,13 @@
             // 重载表格
             reload(window.pid);
         });
+    }
+
+    function jumpBreadcrumb(obj){
+        var id = obj.dataset.id;
+        // 清除兄弟节点
+        $(obj).nextAll().remove();
+        reload(id);
     }
 </script>
 </html>
