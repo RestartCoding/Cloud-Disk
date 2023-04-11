@@ -27,7 +27,14 @@ public interface FileService extends IService<File> {
      * @return in
      * @throws BusinessException BusinessException
      */
-    InputStream download(int fileId) throws BusinessException;
+    InputStream read(int fileId) throws BusinessException;
+
+    /**
+     * @param fileId fileId
+     * @return preview input stream
+     * @throws BusinessException BusinessException
+     */
+    InputStream preview(int fileId) throws BusinessException;
 
     /**
      * @param page page

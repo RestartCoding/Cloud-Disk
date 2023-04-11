@@ -8,6 +8,7 @@ import com.xb.cloud.disk.entity.File;
 import com.xb.cloud.disk.enums.FileType;
 import com.xb.cloud.disk.exception.BusinessException;
 import com.xb.cloud.disk.service.FileService;
+import com.xb.cloud.disk.support.FileExtensions;
 import com.xb.cloud.disk.support.StorageService;
 import com.xb.cloud.disk.support.UserContext;
 import com.xb.cloud.disk.vo.file.CreateFolderVO;
@@ -75,13 +76,22 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     @Override
-    public InputStream download(int fileId) throws BusinessException {
+    public InputStream read(int fileId) throws BusinessException {
         File file = baseMapper.selectById(fileId);
         if (file.getType() == FileType.FOLDER) {
-            throw new BusinessException("Can't download folder.");
+            throw new BusinessException("Can't read folder.");
         }
         if (!file.getUserId().equals(UserContext.getUser().getId())) {
-            throw new BusinessException("Can't download other people's file.");
+            throw new BusinessException("Can't read other people's file.");
+        }
+        return storageService.read(file.getUrl());
+    }
+
+    @Override
+    public InputStream preview(int fileId) throws BusinessException {
+        File file = baseMapper.selectById(fileId);
+        if (!FileExtensions.isPreviewAble(file.getFilename())){
+            throw new BusinessException("Preview is not unsupported.");
         }
         return storageService.read(file.getUrl());
     }

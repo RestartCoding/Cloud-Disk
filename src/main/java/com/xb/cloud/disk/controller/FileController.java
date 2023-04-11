@@ -37,7 +37,14 @@ public class FileController {
         // 先写头
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment");
 
-        try (InputStream in = fileService.download(fileId)) {
+        try (InputStream in = fileService.read(fileId)) {
+            IOUtils.copy(in, response.getOutputStream());
+        }
+    }
+
+    @GetMapping("/preview")
+    public void preview(int fileId, HttpServletResponse response) throws IOException {
+        try(InputStream in = fileService.preview(fileId)){
             IOUtils.copy(in, response.getOutputStream());
         }
     }
