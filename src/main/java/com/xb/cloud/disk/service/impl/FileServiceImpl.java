@@ -3,6 +3,7 @@ package com.xb.cloud.disk.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xb.cloud.disk.constant.SysConstants;
 import com.xb.cloud.disk.dao.FileMapper;
 import com.xb.cloud.disk.entity.File;
 import com.xb.cloud.disk.enums.FileType;
@@ -19,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
+import java.util.*;
 
 /**
  * @author jack
@@ -90,7 +91,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     @Override
     public InputStream preview(int fileId) throws BusinessException {
         File file = baseMapper.selectById(fileId);
-        if (!FileExtensions.isPreviewAble(file.getFilename())){
+        if (!FileExtensions.isPreviewAble(file.getFilename())) {
             throw new BusinessException("Preview is not unsupported.");
         }
         return storageService.read(file.getUrl());
@@ -120,5 +121,71 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         entity.setUploadTime(new Date());
         entity.setUserId(UserContext.getUser().getId());
         baseMapper.insert(entity);
+    }
+
+    @Override
+    public File getFileTree(int userId, boolean onlyFolder) {
+        LambdaQueryWrapper<File> queryWrapper = new LambdaQueryWrapper<File>().eq(File::getUserId, userId);
+        if (onlyFolder) {
+            queryWrapper.eq(File::getType, FileType.FOLDER);
+        }
+        List<File> list = baseMapper.selectList(queryWrapper);
+        File root = new File();
+        root.setId(SysConstants.USER_FILE_ROOT_ID);
+        root.setFilename("root");
+        Queue<File> queue = new LinkedList<>();
+        queue.offer(root);
+        while (queue.size() > 0) {
+            int size = queue.size();
+            for (int i = 0; i < size; i++) {
+                File file = queue.poll();
+                Iterator<File> iterator = list.iterator();
+                while (iterator.hasNext()) {
+                    File next = iterator.next();
+                    if (file.getId().equals(next.getPid())) {
+                        if (file.getChildren() == null) {
+                            file.setChildren(new ArrayList<>());
+                        }
+                        file.getChildren().add(next);
+                        queue.add(next);
+                        iterator.remove();
+                    }
+                }
+            }
+        }
+        return root;
+    }
+
+    @Override
+    public void moveFile(int fileId, int targetFileId) throws BusinessException {
+
+        if (fileId == targetFileId) {
+            throw new BusinessException("Can not move to self.");
+        }
+
+        File targetFile = baseMapper.selectById(targetFileId);
+        if (targetFileId != SysConstants.USER_FILE_ROOT_ID && targetFile == null) {
+            throw new BusinessException("Target file not exist.");
+        }
+        if (targetFile != null && targetFile.getType() != FileType.FOLDER) {
+            throw new BusinessException("Target file is not a folder.");
+        }
+
+
+        File file = baseMapper.selectById(fileId);
+        if (file == null) {
+            throw new BusinessException("File not exist.");
+        }
+
+        File duplicateFilenameFile = baseMapper.selectOne(new LambdaQueryWrapper<File>()
+                .eq(File::getPid, targetFileId)
+                .eq(File::getFilename, file.getFilename()));
+        if (duplicateFilenameFile != null) {
+            throw new BusinessException("Target folder already file named [" + file.getFilename() + "]");
+        }
+
+        file.setPid(targetFileId);
+
+        baseMapper.updateById(file);
     }
 }

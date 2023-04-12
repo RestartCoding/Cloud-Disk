@@ -1,11 +1,13 @@
 package com.xb.cloud.disk.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.xb.cloud.disk.enums.FileType;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author jack
@@ -33,4 +35,7 @@ public class File {
     private Date createTime;
 
     private Date updateTime;
+
+    @TableField(exist = false)
+    private List<File> children;
 }

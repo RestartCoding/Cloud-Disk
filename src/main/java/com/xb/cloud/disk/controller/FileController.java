@@ -4,8 +4,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xb.cloud.disk.entity.File;
 import com.xb.cloud.disk.service.FileService;
+import com.xb.cloud.disk.support.UserContext;
 import com.xb.cloud.disk.vo.ApiResponse;
 import com.xb.cloud.disk.vo.file.CreateFolderVO;
+import com.xb.cloud.disk.vo.file.FileTreeVO;
+import com.xb.cloud.disk.vo.file.MoveFileReqVO;
 import com.xb.cloud.disk.vo.file.UploadFileVO;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.http.HttpHeaders;
@@ -44,7 +47,7 @@ public class FileController {
 
     @GetMapping("/preview")
     public void preview(int fileId, HttpServletResponse response) throws IOException {
-        try(InputStream in = fileService.preview(fileId)){
+        try (InputStream in = fileService.preview(fileId)) {
             IOUtils.copy(in, response.getOutputStream());
         }
     }
@@ -58,6 +61,19 @@ public class FileController {
     @PostMapping("/folder")
     public ApiResponse<Void> createFolder(@RequestBody CreateFolderVO vo) {
         fileService.createFolder(vo);
+        return ApiResponse.ok(null);
+    }
+
+    @GetMapping("/tree")
+    public ApiResponse<FileTreeVO> getFileTree(@RequestParam boolean onlyFolder) {
+        Integer userId = UserContext.getUser().getId();
+        File file = fileService.getFileTree(userId, onlyFolder);
+        return ApiResponse.ok(FileTreeVO.from(file));
+    }
+
+    @PutMapping("/move")
+    public ApiResponse<Void> move(@RequestBody MoveFileReqVO vo){
+        fileService.moveFile(vo.getFileId(), vo.getTargetFileId());
         return ApiResponse.ok(null);
     }
 }

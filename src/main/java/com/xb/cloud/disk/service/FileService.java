@@ -48,4 +48,19 @@ public interface FileService extends IService<File> {
      * @param createFolderVO vo
      */
     void createFolder(CreateFolderVO createFolderVO);
+
+    /**
+     * 树形结构
+     *
+     * @param userId     userId
+     * @param onlyFolder 是否只要文件夹
+     * @return 用户文件树结构
+     */
+    File getFileTree(int userId, boolean onlyFolder);
+
+    /**
+     * @param fileId       fileId
+     * @param targetFileId targetFileId
+     */
+    void moveFile(int fileId, int targetFileId) throws BusinessException;
 }

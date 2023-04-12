@@ -5,7 +5,7 @@
     <title>file</title>
 </head>
 <style>
-    .operationButton{
+    .operationButton {
         width: 70px;
         text-align: center;
     }
@@ -19,6 +19,7 @@
     <a class="layui-btn layui-btn-xs operationButton" lay-event="download">Download</a>
     <a class="layui-btn layui-btn-xs operationButton" lay-event="preview">Preview</a>
     {{#  } }}
+    <a class="layui-btn layui-btn-xs operationButton" lay-event="move">Move</a>
 </script>
 <body>
 
@@ -34,8 +35,8 @@
         Create Folder
     </button>
 </div>
-    <!-- 面包屑 -->
-    <span class="layui-breadcrumb" style="visibility: visible">
+<!-- 面包屑 -->
+<span class="layui-breadcrumb" style="visibility: visible">
       <a href="#" data-id="-1" onclick="jumpBreadcrumb(this)">根目录</a>
     </span>
 <div>
@@ -68,7 +69,9 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearUploadFileModal()">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        onclick="clearUploadFileModal()">Close
+                </button>
                 <button type="submit" class="btn btn-primary" data-bs-dismiss="modal" onclick="upload()">Upload</button>
             </div>
         </div>
@@ -91,8 +94,11 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearCreateFolderModal()">Close</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="createFolder()">Create</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        onclick="clearCreateFolderModal()">Close
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="createFolder()">Create
+                </button>
             </div>
         </div>
     </div>
@@ -149,23 +155,73 @@
             , {field: 'size', title: 'size', width: 80}
             , {field: 'uploadTime', title: 'upload time', width: 270}
             , {field: 'type', title: 'type', width: 100}
-            , {title: 'operation', width: 200, templet: '#toolEvent'}
+            , {title: 'operation', width: 400, templet: '#toolEvent'}
         ]]
     });
 
-    layui.table.on('tool(fileList)', function(obj){
-        console.log(obj);
-        if (obj.event === 'in'){
-            reload(obj.data.id);
+    layui.table.on('tool(fileList)', function (obj) {
+        let fileId = obj.data.id;
+        if (obj.event === 'in') {
+            reload(fileId);
             addBreadcrumb(obj.data);
-        }else if(obj.event === 'download'){
-            location.href = '/file/download?fileId=' + obj.data.id;
-        }else if(obj.event === 'preview'){
-            window.open('/file/preview?fileId=' + obj.data.id);
+        } else if (obj.event === 'download') {
+            location.href = '/file/download?fileId=' + fileId;
+        } else if (obj.event === 'preview') {
+            window.open('/file/preview?fileId=' + fileId);
+        } else if (obj.event === 'move') {
+            // 移动
+            let id = obj.data.id;
+            let selectedTargetFolder = null;
+            layer.open({
+                title: 'Select target folder',
+                tyoe: 1,
+                content: '<div id="selectFolder"></div>',
+                success: function (layero, idnex) {
+                    // callback
+                    axios.get('/file/tree?onlyFolder=true')
+                        .then(function (resp) {
+                            if (resp.data.code === '0') {
+                                var treeData = [];
+                                treeData.push(resp.data.data);
+                                layui.tree.render({
+                                    elem: '#selectFolder',
+                                    data: treeData,
+                                    click: function (obj) {
+                                        selectedTargetFolder = obj.data.id;
+                                    }
+                                });
+                            } else {
+                                alert(resp.data.msg);
+                            }
+                        }).catch(function (err) {
+                        alert('Unknown error.');
+                    })
+
+                },
+                yes: function (index, layero) {
+                    if (!selectedTargetFolder) {
+                        alert('Please select folder.');
+                        return;
+                    }
+                    // 移动
+                    axios.put('/file/move', {
+                        fileId: id,
+                        targetFileId: selectedTargetFolder
+                    }).then(function (resp){
+                        if (resp.data.codecs !== '0'){
+                            reload(pid);
+                        }
+                    }).catch(function (err){
+                        alert('Unknown error')
+                    });
+                    // 手动关闭
+                    layer.close(index);
+                },
+            });
         }
     })
 
-    function walKInFolder(data){
+    function walKInFolder(data) {
         reload(data.id);
     }
 
@@ -173,8 +229,8 @@
      * 加面包屑
      * @param data
      */
-    function addBreadcrumb(data){
-        var html = '<span lay-separator="">/</span><a href="#" data-id="'+ data.id +'" onclick="jumpBreadcrumb(this)">' + data.filename + '</a>';
+    function addBreadcrumb(data) {
+        var html = '<span lay-separator="">/</span><a href="#" data-id="' + data.id + '" onclick="jumpBreadcrumb(this)">' + data.filename + '</a>';
         var e = document.querySelector(".layui-breadcrumb");
         e.innerHTML = e.innerHTML + html;
     }
@@ -198,7 +254,7 @@
 
     function upload() {
         $('#pid').val(window.pid);
-        $('#uploadFileForm').ajaxSubmit(function (res){
+        $('#uploadFileForm').ajaxSubmit(function (res) {
             // 清空上传模态框
             clearUploadFileModal();
             // 重载表格
@@ -206,7 +262,7 @@
         });
     }
 
-    function jumpBreadcrumb(obj){
+    function jumpBreadcrumb(obj) {
         var id = obj.dataset.id;
         // 清除兄弟节点
         $(obj).nextAll().remove();
