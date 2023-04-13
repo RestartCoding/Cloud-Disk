@@ -63,4 +63,12 @@ public interface FileService extends IService<File> {
      * @param targetFileId targetFileId
      */
     void moveFile(int fileId, int targetFileId) throws BusinessException;
+
+    /**
+     * 删除文件
+     *
+     * @param fileId fileId
+     * @throws BusinessException BusinessException
+     */
+    void deleteFile(int fileId) throws BusinessException;
 }

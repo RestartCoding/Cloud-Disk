@@ -72,8 +72,14 @@ public class FileController {
     }
 
     @PutMapping("/move")
-    public ApiResponse<Void> move(@RequestBody MoveFileReqVO vo){
+    public ApiResponse<Void> move(@RequestBody MoveFileReqVO vo) {
         fileService.moveFile(vo.getFileId(), vo.getTargetFileId());
+        return ApiResponse.ok(null);
+    }
+
+    @DeleteMapping("/{fileId}")
+    public ApiResponse<Void> delete(@PathVariable("fileId") int fileId) {
+        fileService.deleteFile(fileId);
         return ApiResponse.ok(null);
     }
 }

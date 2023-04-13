@@ -1,5 +1,7 @@
 package com.xb.cloud.disk.support;
 
+import com.xb.cloud.disk.exception.BusinessException;
+
 import java.io.InputStream;
 
 /**
@@ -23,6 +25,7 @@ public interface StorageService {
      * 删除存储对象
      *
      * @param url url
+     * @throws BusinessException 删除文件失败
      */
-    void delete(String url);
+    void delete(String url) throws BusinessException;
 }

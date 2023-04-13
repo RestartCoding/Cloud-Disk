@@ -49,7 +49,7 @@ public class LocalFileSystemStorageService implements StorageService {
     }
 
     @Override
-    public void delete(String url) {
+    public void delete(String url) throws BusinessException{
         File file = new File(url);
         if (file.exists()) {
             boolean b = file.delete();

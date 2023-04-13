@@ -13,13 +13,14 @@
 <script type="text/html" id="toolEvent">
     <!-- 支持任意的 laytpl 语法，如： -->
     {{#  if(d.type === 'FOLDER'){ }}
-    <a class="layui-btn layui-btn-xs operationButton" lay-event="in">In</a>
+    <a class="layui-btn layui-btn-xs" lay-event="in">In</a>
     {{#  } }}
     {{#  if(d.type === 'NORMAL'){ }}
-    <a class="layui-btn layui-btn-xs operationButton" lay-event="download">Download</a>
-    <a class="layui-btn layui-btn-xs operationButton" lay-event="preview">Preview</a>
+    <a class="layui-btn layui-btn-xs" lay-event="download">Download</a>
+    <a class="layui-btn layui-btn-xs" lay-event="preview">Preview</a>
     {{#  } }}
     <a class="layui-btn layui-btn-xs operationButton" lay-event="move">Move</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">Delete</a>
 </script>
 <body>
 
@@ -150,12 +151,26 @@
             }
         }//开启分页
         , cols: [[ //表头
-            {field: 'id', title: 'ID', width: 80, sort: true, fixed: 'left'}
-            , {field: 'filename', title: 'filename', width: 270}
-            , {field: 'size', title: 'size', width: 80}
-            , {field: 'uploadTime', title: 'upload time', width: 270}
-            , {field: 'type', title: 'type', width: 100}
-            , {title: 'operation', width: 400, templet: '#toolEvent'}
+
+            // {field: 'id', title: 'ID', width: 80, sort: true, fixed: 'left'},
+            {
+                field: 'type', title: 'icon', width: 80, templet: function (d) {
+                    var html;
+                    if (d.type === 'FOLDER') {
+                        html = '<i class="layui-icon layui-icon-file"></i>';
+                    } else if (d.type === 'NORMAL') {
+                        html = '<i class="layui-icon layui-icon-file"></i>';
+                    } else {
+                        html = '<i class="layui-icon layui-icon-file"></i>';
+                    }
+                    return html;
+                }
+            },
+            {field: 'filename', title: 'filename', width: 270},
+            {field: 'size', title: 'size', width: 80},
+            {field: 'uploadTime', title: 'upload time', width: 270},
+            {field: 'type', title: 'type', width: 100},
+            {title: 'operation', width: 400, templet: '#toolEvent'}
         ]]
     });
 
@@ -168,6 +183,28 @@
             location.href = '/file/download?fileId=' + fileId;
         } else if (obj.event === 'preview') {
             window.open('/file/preview?fileId=' + fileId);
+        } else if (obj.event === 'delete') {
+            // 删除文件
+            axios.delete('/file/' + obj.data.id)
+                .then(function (resp) {
+                    if (resp.data.code === '0') {
+                        layer.open({
+                            title: 'tip',
+                            content: 'delete success'
+                        });
+                        reload(window.pid);
+                    } else {
+                        layer.open({
+                            title: 'tip',
+                            content: 'failed to delete. cause: ' + resp.data.msg
+                        });
+                    }
+                }).catch(function (err) {
+                    layer.open({
+                        title: 'tip',
+                        content: 'request failed.'
+                    });
+            });
         } else if (obj.event === 'move') {
             // 移动
             let id = obj.data.id;
@@ -207,17 +244,23 @@
                     axios.put('/file/move', {
                         fileId: id,
                         targetFileId: selectedTargetFolder
-                    }).then(function (resp){
-                        if (resp.data.codecs !== '0'){
+                    }).then(function (resp) {
+                        if (resp.data.codecs !== '0') {
                             reload(pid);
                         }
-                    }).catch(function (err){
+                    }).catch(function (err) {
                         alert('Unknown error')
                     });
                     // 手动关闭
                     layer.close(index);
                 },
             });
+        } else {
+            layer.open({
+                type: 4,
+                title: 'tip',
+                content: 'Unsupported for now'
+            })
         }
     })
 

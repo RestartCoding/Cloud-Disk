@@ -15,6 +15,7 @@ import com.xb.cloud.disk.support.UserContext;
 import com.xb.cloud.disk.vo.file.CreateFolderVO;
 import com.xb.cloud.disk.vo.file.UploadFileVO;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -187,5 +188,30 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         file.setPid(targetFileId);
 
         baseMapper.updateById(file);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteFile(int fileId) throws BusinessException {
+        // 只能删文件或空文件夹
+        File file = baseMapper.selectById(fileId);
+        if (file == null){
+            throw new BusinessException("The file not exist.");
+        }
+
+        if (file.getType() == FileType.FOLDER){
+            Long children = baseMapper.selectCount(new LambdaQueryWrapper<File>().eq(File::getPid, fileId));
+            if (children > 0){
+                throw new BusinessException("The folder is not empty and You can't delete it.");
+            }
+        }
+
+        // 删除表记录
+        baseMapper.deleteById(fileId);
+
+        // 删除文件
+        if (file.getType() != FileType.FOLDER){
+            storageService.delete(file.getUrl());
+        }
     }
 }
